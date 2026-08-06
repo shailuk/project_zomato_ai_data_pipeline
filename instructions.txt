@@ -1,0 +1,123 @@
+Youtube Link : https://www.youtube.com/watch?v=kYwaNMQ3XT8
+
+-------- Git and VM setup --------------
+Step 1 : Create a repo for this project on github and clone it. 
+         git clone <repo url>
+
+Step 2 : Create a virtual environment - python -m venv .venv_zomato
+         Activate the VM -source .venv_zomato/bin/activate
+
+Step 3 : Create .gitignore file. Add data/ to .gitignore. 
+
+-------- Making sure that the datasets are ready ---------------
+Step 4 : Download the datasets from https://drive.google.com/drive/folders/1FEnGWMHhHzzTUCZOw1-YnH2v3DMuM-rs
+
+Step 5 : Copy the datasets to the data folder. Create separate folders for each dataset and upload the file. 
+         Food, Menu, Order_items, Orders, Restaurants, Reviews and Users.
+
+--------- Setting up the snowflake account ------------------
+Step 6 : Log into your snowflake account.
+
+Step 7 : Run 01_setup.sql script. 
+
+Step 8 : Create Storage Integration - Coneect AWS account to snowflake. 02_storage_integration.sql
+STORAGE_INTEGRATION - A Storage Integration is a special security agreement between Snowflake and your cloud provider (AWS S3).
+STAGE - A Stage is a pointer location where raw data files sit right before they get unpacked and loaded into structured Snowflake tables.
+
+Step 9 : Create a policy - Add S3 read and list access. aws/iam/zomato_s3_read.json
+
+Step 10 : Create a new role and attach the policy created in the previous step. 
+
+Step 11 : Make sure to add the STORAGE_AWS_EXTERNAL_ID and STORAGE_AWS_IAM_USER_ARN to the Trusted Policy of the role created in the previous step. 
+
+Step 12 : Create File Format - 03_stage_and_formats.sql 
+
+Step 13 : Create stage - 03_stage_and_formats.sql 
+
+Step 14 : Run the DDL statemets to create the tables - 04_raw_table.sql
+
+Step 15 : Run the copy command - 05_copy_into - Load the files into the repective tables. 
+            Anatomy of copy command - 
+            COPY INTO <target table>
+            FROM @aws_stage
+            file_format = <file_format>
+            files = <file_names>
+
+-------------- Setting up DBT -------------------
+
+--------\\---------
+
+Step 1: Complete "dbt Fundamentals" on courses.getdbt.com
+  │
+Step 2: Read dbt Docs on "Sources", "Ref", and "Materializations"
+  │
+Step 3: Build your own sample project (like your Zomato project) locally with dbt-core + Snowflake
+  │
+Step 4: Practice writing Tests, Incremental Models, Macros, and Packages (dbt_utils)
+
+--------\\---------
+
+Step 16 : run pip3 install dbt-snowflake 
+In short: dbt acts like a smart factory manager for your data.
+Instead of writing long, messy SQL scripts to clean your data by hand, dbt lets you write small, organized SQL recipes.
+ It then runs those recipes inside your database (like Snowflake) to turn messy raw data into clean tables ready for reports.
+
+ Step 18 : In your snowflake account, click on your profile logo (bottom left) ---> connect tool to snowflake ---> Has all your account info
+
+ Step 17 : Run dbt init zomato
+           - Select 1 from the list. (Snowflake) 
+           - Enter the account identifier 
+           - Enter the dev username 
+           - Enter the snowflake account password 
+           - Enter the dev role - DBT_ROLE - created in 01_setup.sql
+           - Enter the warehouse - ZOMATO_WH - created in 01_setup.sql 
+           - Enter the default database - ZOMATO - created in 01_setup.sql 
+           - Enter the schema - STAGING 
+           - Number of Threads - 8
+
+Step 18 : Delete the examples folder inside models folder 
+
+Step 19 : Create dbt_project.yml file 
+Summary of the 3 Layers: 
+Layer         Analogy               Primary Goal            Built As (Default)
+Staging      Washing & chopping     Clean, format,          View
+              raw ingredients       and rename columns
+
+Marts        Serving the cooked,    Combine tables          Table 
+             finished meal.         for reporting & BI
+
+Snapshots    Photo album of         Track historical        Special Table
+             past meals             changes over time
+Prompt what staging, marts and snapshots are in Gemini
+
+Step 20 : Create _sources.yml file inside models/staging folder. 
+
+Step 21 : Create generate_schema_name.sql file in zomato/marcos folder. 
+
+Step 22 : Create stg_restaurant.sql, stg_food.sql, stg_menu.sql, stg_orders.sql, stg_order_items.sql, stg_restaurnats.sql, stg_users.sql
+         files in zomato/models/staging
+          Basically, adding the data validation code this file. 
+
+          Run command : dbt run --select staging
+
+Step 23 : Create a new folder called marts inside models folder
+          Create the sql files - dim_customer.sql, dim_date.sql, dim_food.sql, dim_restaurant.sql, fct_orders.sql, 
+          fct_orders_items.sql, mart_daily_city_revenue.sql, mart_delivery_sla.sql, mart_restaurant_performance.sql, 
+          mart_review_insights.sql (Later)
+
+Function        Used For                        Example
+source()        Raw, unmanaged source           {{ source('raw', 'food') }}
+                data entering dbt
+
+ref()           Downstream dbt models built      {{ ref('stg_food') }}
+                inside your dbt project
+[ raw.food ] ──( source )──> [ stg_food ] ──( ref )──> [ your_new_model ]
+A Data Mart is not a table type (like a Fact or Dimension), but rather a business-focused collection of tables organized 
+around a specific department, team, or business process.
+
+Step 24 : Once all the sql scripts are read in the ,art folder - run dbt run --select marts
+
+Step 25 : run the following command ---> dbt test
+
+Step 26 : run the following command -----> dbt docs generate && dbt docs serve
+

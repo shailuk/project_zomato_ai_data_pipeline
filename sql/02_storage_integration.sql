@@ -1,0 +1,21 @@
+USE ROLE ACCOUNTADMIN; 
+
+-- Create Storage Integration
+CREATE OR REPLACE STORAGE INTEGRATION ZOMATO_S3_INT
+    TYPE = EXTERNAL_STAGE
+    STORAGE_PROVIDER = 'S3'
+    ENABLED = TRUE
+    STORAGE_AWS_ROLE_ARN = 'arn:aws:iam::060662064877:role/zomato_s3_read_role'
+    STORAGE_ALLOWED_LOCATIONS = ('s3://project-zomato-data-060662064877-us-east-1-an/');
+
+-- Allow DBT role to use this integration 
+GRANT USAGE ON INTEGRATION ZOMATO_S3_INT TO ROLE DBT_ROLE;
+
+DESC INTEGRATION ZOMATO_S3_INT; 
+
+
+
+
+    
+    
+
