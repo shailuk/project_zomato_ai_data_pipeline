@@ -117,7 +117,45 @@ around a specific department, team, or business process.
 
 Step 24 : Once all the sql scripts are read in the ,art folder - run dbt run --select marts
 
-Step 25 : run the following command ---> dbt test
+Step 25 : Run the following command ---> dbt test
 
-Step 26 : run the following command -----> dbt docs generate && dbt docs serve
+Step 26 : Run the following command -----> dbt docs generate && dbt docs serve
+
+---------------------- Setting up Airflow -----------------------
+Step 27 : Create folder ---> airflow . Create dags folder. Place zomato_batch.py inside dags folder.
+
+Step 28 : Inside airflow folder, create docker-compose.yml, Dockerfile. Create dags folder. Inside dags folder, create .env folder 
+          and add snowflake credentials within it. 
+airflow (Outer folder) ----> dags, docker-compose.yml and Dockerfile (Level 1)
+                                Inside dags folder, create .env folder (Level 2)
+
+Dockerfile ---> Use this to run custom apps
+docker-compose.yml ----> Setting up pre-built tools
+
+Step 29 : Run ----> docker-compose build, followed by docker-compose up -d, followed by running localhost:8080 on the browser. 
+
+Step 30 : Make sure the profile.yml file is present inside the dbt (zomato) folder. 
+
+Step 31 : Run localhost:8080 after docker-compose up -d 
+          To stop ---> docker-compose down
+
+Step 32 : Trigger the DAG. Check reload_raw and dbt_build_core runs successfully. 
+
+-------- Github ---------
+
+1) create a new branch called dev ----> git branch dev 
+2) Switch branch ----> git checkout dev
+3) Stage ----> git add .
+4) commit ---> git commit -m 'commit message'
+5) push -----> git push -u <branch name>
+
+---------------------------- AI Part -------------------
+
+Step 33 : Create ai folder and add enrich_review.py file. 
+
+Step 34 : Create a new environment file inside ai folder 
+
+Step 35 : 
+
+
 
