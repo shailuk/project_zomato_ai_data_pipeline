@@ -1,16 +1,17 @@
-import os
 import json
+import os
 import snowflake.connector
-from openai import OpenAI
 from dotenv import load_dotenv
+from groq import Groq
+import time
 
 load_dotenv()
 
-MODEL = "gpt-4o-mini"
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+MODEL = "llama-3.1-8b-instant"
 
-SAMPLE_N = 5
+SAMPLE_N = 2
 TOPICS = ["food quality", "delivery", "pricing", "service", "packaging", "other"]
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 SYSTEM_PROMPT = f"""
 You classify customer reviews for a food delivery app.
@@ -26,8 +27,10 @@ Reply as JSON in this exact format:
     "sentiment_label": "<sentiment_label>",
     "sentiment_score": <sentiment_score>,
     "topic": "<topic>",
-    "key_issue": "<key_issue>"}}
+    "key_issue": "<key_issue>"
+}}
 """
+
 
 def get_connection():
     return snowflake.connector.connect(
@@ -38,6 +41,7 @@ def get_connection():
         database=os.getenv("SNOWFLAKE_DATABASE"),
         schema=os.getenv("SNOWFLAKE_SCHEMA"),
     )
+
 
 def create_output_table(cursor):
     cursor.execute("CREATE SCHEMA IF NOT EXISTS ZOMATO.AI")
@@ -53,6 +57,7 @@ def create_output_table(cursor):
         )
     """)
 
+
 def get_reviews_to_enrich(cursor):
     cursor.execute(f"""
         SELECT REVIEW_ID, COMMENT
@@ -61,6 +66,7 @@ def get_reviews_to_enrich(cursor):
         LIMIT {SAMPLE_N}
     """)
     return cursor.fetchall()
+
 
 def classify_review(comment):
     response = client.chat.completions.create(
@@ -72,8 +78,9 @@ def classify_review(comment):
             {"role": "user", "content": comment}
         ]
     )
-    answer = response.choices[0].message.content
-    return json.loads(answer)
+    print(response)
+    return json.loads(response.choices[0].message.content)
+    
 
 def save_results(cursor, results):
     """Insert all the enriched rows into Snowflake in one go."""
@@ -86,7 +93,7 @@ def save_results(cursor, results):
         """,
         results,
     )
- 
+
 
 def main():
     conn = get_connection()
@@ -96,6 +103,8 @@ def main():
 
     if len(reviews) == 0:
         print("No new reviews to enrich.")
+        cursor.close()
+        conn.close()
         return
 
     print(f"Enriching {len(reviews)} reviews...")
@@ -112,16 +121,24 @@ def main():
                 labels["sentiment_score"],
                 labels["topic"],
                 labels["key_issue"],
-                MODEL
+                MODEL,
             ))
         except Exception as e:
             print(f"Error occurred while classifying review {review_id}: {e}")
 
-    save_results(cursor, results)
-    print(f"Saved {len(results)} enriched reviews to Snowflake.")
-    conn.commit()
+        time.sleep(2)
+
+    # Check that we actually have results to insert
+    if results:
+        save_results(cursor, results)
+        print(f"Saved {len(results)} enriched reviews to Snowflake.")
+        conn.commit()
+    else:
+        print("No reviews were successfully classified.")
+
     cursor.close()
     conn.close()
+
 
 if __name__ == "__main__":
     main()

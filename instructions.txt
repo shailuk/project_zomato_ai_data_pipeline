@@ -149,13 +149,62 @@ Step 32 : Trigger the DAG. Check reload_raw and dbt_build_core runs successfully
 4) commit ---> git commit -m 'commit message'
 5) push -----> git push -u <branch name>
 
----------------------------- AI Part -------------------
+---------------------------- AI Part - Layer 1 (LLM enrichment) -------------------
 
 Step 33 : Create ai folder and add enrich_review.py file. 
 
-Step 34 : Create a new environment file inside ai folder 
+Step 34 : Create a new environment file inside ai folder. Add snowflake and groq or gemini credentials. 
 
-Step 35 : 
+Step 35 : pip install Groq
+
+Check all the models available using your API key - 
+python -c "from dotenv import load_dotenv; load_dotenv(); 
+import os; from google import genai; 
+client = genai.Client(api_key=os.getenv('GEMINI_API_KEY')); 
+print([m.name for m in client.models.list()])"
+
+Step 36 : Run python enrich_reviews.py to test the code. Check the ai.reviews_enriched table for output. 
 
 
+----------------- AI Layer 2 (RAG) ---------------------
 
+Step 37 : Create a new file inside ai folder called rag.py
+
+Step 38 : Run pip install groq fastembed
+
+Step 39 : Run streamlit run RAG.py - The app opens in your browser. 
+
+------------ AI Layer 3 - Converting Text to SQL -----------------
+
+Step 40 : Create text_to_sql.py file 
+
+Step 41 : Run streamlit run text_to_sql.py - The app opens in your browser. 
+
+------------ Orchestrating the whole project using Apache Airflow -----------------
+
+Step 42 : cd Airflow and run ---> docker-compose up
+
+# 1. Stop and remove existing containers
+docker compose down
+
+# 2. Force a rebuild of the Dockerfile
+docker compose build --no-cache
+
+# 3. Start the containers up again
+docker compose up -d
+
+Link to Groq:
+https://console.groq.com/dashboard/metrics
+
+Cleaning up Docker : 
+Step 1: Stop and Remove Project Containers & Volumes
+docker compose down -v --rmi all
+
+Step 2: Clean Up Unused Docker Resources (Safe Cleanup):
+docker system prune -a --volumes
+
+
+Step 3: Verify Your Disk Space Reclaimed 
+docker system df
+
+Step 43 : Make sure to update the .gitgnore file and commit the project to github 
