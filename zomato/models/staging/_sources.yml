@@ -1,0 +1,21 @@
+sources: 
+  - name: raw
+    description: "Zomato data sources"
+    database: 'ZOMATO'
+    schema: 'RAW'
+    tables:
+      - name: restaurants
+        description: "Table containing restaurant information"
+      - name: reviews
+        description: "Table containing restaurant reviews"
+      - name: users
+        description: "Table containing users information"
+      - name: orders
+        description: "Table containing orders information"
+      - name: order_items
+        description: "Table containing order item information"
+      - name: food
+        description: "Table containing food item information"
+      - name: menu
+        description: "Table containing menu information"
+      
