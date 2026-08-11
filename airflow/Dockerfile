@@ -2,11 +2,18 @@
 # Bump the tag to the newest 3.x if you like (e.g. 3.0.4 / 3.1.x).
 FROM apache/airflow:3.0.3
 
-# Providers: snowflake (COPY task), fab (classic username/password login), openai (AI task).
+USER airflow
+
+# Providers: snowflake (COPY task), fab (classic username/password login), Groq (AI task).
+# Cleaned single-line or multi-line Dockerfile RUN statement
 RUN pip install --no-cache-dir \
-      apache-airflow-providers-snowflake \
-      apache-airflow-providers-fab \
-      openai
+    apache-airflow-providers-snowflake \
+    apache-airflow-providers-fab \
+    groq \
+    snowflake-connector-python \
+    pandas \
+    python-dotenv
+
 
 # dbt in its own venv so it never clashes with Airflow's deps. DAG calls /opt/airflow/dbt_venv/bin/dbt
 RUN python -m venv /opt/airflow/dbt_venv && \
